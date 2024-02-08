@@ -1,0 +1,29 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Agent.BuildDirectory)'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
+- task: Veracode@3
+  inputs:
+    ConnectionDetailsSelection: 'Credentials'
+    apiId: '$(VERACODE_API_ID)'
+    apiKey: '$(VERACODE_API_KEY)'
+    veracodeAppProfile: 'VeraDemo'
+    version: '$(build.buildNumber)'
+    filepath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    importResults: true
+    maximumWaitTime: '360'

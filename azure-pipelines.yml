@@ -10,20 +10,33 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- task: ArchiveFiles@2
+- task: CopyFiles@2
   inputs:
-    rootFolderOrFile: '$(Agent.BuildDirectory)'
+    SourceFolder: './'
+    Contents: '**/*.js'
+    TargetFolder: './veracode'
+- task: ArchiveFiles@2
+
+  inputs:
+    rootFolderOrFile: './veracode'
     includeRootFolder: true
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-js.zip'
     replaceExistingArchive: true
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-js.zip'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
 - task: Veracode@3
   inputs:
     ConnectionDetailsSelection: 'Credentials'
     apiId: '$(VERACODE_API_ID)'
     apiKey: '$(VERACODE_API_KEY)'
+    # veracodeAppProfile: '$(system.teamProject)'
     veracodeAppProfile: 'VeraDemo'
     version: '$(build.buildNumber)'
-    filepath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    filepath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-js.zip'
     importResults: true
     maximumWaitTime: '360'
